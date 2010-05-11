@@ -1,0 +1,9 @@
+---
+broadcast:
+encoding: shiftjis
+getlist:
+groupname: group
+hostname: ipmsg
+nickname: ipmsg
+priority:
+username: ipmsg
