@@ -22,7 +22,7 @@ sub new_main_window {
         }
     );
     $window->set_border_width(5);
-    $window->set_icon_from_file('ipmsg.ico');
+    $window->set_icon_from_file( $self->ipmsg_icon );
     $window->add( $self->new_vbox() );
     $window->show_all;
 }

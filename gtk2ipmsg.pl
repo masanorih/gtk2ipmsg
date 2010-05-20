@@ -6,10 +6,11 @@
 #
 #   for Ubuntu users
 #       you need to install
+#
 #       libgtk2.0-dev for Gtk2
 #       libnotify-dev for Gtk2::Nofity
 #
-#   those Perl modules are required.
+#   these Perl modules are required.
 #
 #       IO::Interface::Simple
 #       YAML
@@ -22,6 +23,13 @@
 #
 # - for animation support
 #
+#   for Ubuntu users
+#
+#       you need to install
+#       libgtkimageview-dev
+#
+#   this Perl module is required.
+#
 #       Gtk2::ImageView
 #
 # - for encryption support
@@ -29,7 +37,7 @@
 #   for Ubuntu users
 #       you need to install libssl-dev for Crypt::OpenSSL::RSA
 #
-#   those Perl modules are required.
+#   these Perl modules are required.
 #
 #       Crypt::CBC
 #       Crypt::Blowfish
@@ -53,3 +61,11 @@ my $gipmsg = Gtk2IPMessenger->new;
 $gipmsg->new_tray_icon;
 
 Gtk2->main;
+
+__END__
+
+Copyright (c) 2010, Masanori Hara massa.hara at gmail.com.
+All rights reserved.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.

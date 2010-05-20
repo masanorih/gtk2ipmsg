@@ -2,10 +2,11 @@ package Gtk2IPMessenger::TrayIcon;
 
 use warnings;
 use strict;
+use File::Spec::Functions;
+use FindBin qw($Bin);
 use Glib qw( TRUE FALSE );
-use Gtk2::TrayIcon;
-#use Gtk2::NotificationBubble;
 use Gtk2::Notify -init, 'ipmsg';
+use Gtk2::TrayIcon;
 
 my $icon_size        = 'small-toolbar';
 my $show_bubble_time = 5000;
@@ -22,9 +23,6 @@ sub new_tray_icon {
     my $icon = Gtk2::TrayIcon->new('ipmsg');
     $icon->add($eventbox);
     $icon->show_all;
-
-#   my $bubble = Gtk2::NotificationBubble->new;
-#   $bubble->attach($icon);
 
     $eventbox->signal_connect(
         button_release_event => sub {
@@ -51,7 +49,6 @@ sub new_tray_icon {
     );
 
     # save items
-#   $self->bubble($bubble);
     $self->icon_image($img);
     return $icon;
 }
@@ -59,12 +56,7 @@ sub new_tray_icon {
 sub show_bubble {
     my( $self, $header, $message ) = @_;
 
-#   my $bubble = $self->bubble;
-#   $bubble->set( $header, Gtk2::Image->new_from_file('ipmsg.ico'), $message );
-#   $bubble->show($show_bubble_time);
-
-    use FindBin qw($Bin);
-    my $icon   = $Bin . '/ipmsg.ico';
+    my $icon   = catfile( $Bin , $self->ipmsg_icon );
     my $notify = Gtk2::Notify->new( $header, $message, $icon );
     $notify->set_timeout($show_bubble_time);
     $notify->show;
@@ -116,10 +108,11 @@ sub create_stock_item {
                 translation_domain => 'gtk2_image',
             }
         );
-        my $img_file = $stock_id . '.ico';
+        my $icon_method = $stock_id . '_icon';
+        my $icon = $self->$icon_method;
         my $icon_set =
             Gtk2::IconSet->new_from_pixbuf(
-            Gtk2::Gdk::Pixbuf->new_from_file($img_file) );
+            Gtk2::Gdk::Pixbuf->new_from_file($icon) );
         $icon_factory->add( $stock_id, $icon_set );
     }
     $icon_factory->add_default;

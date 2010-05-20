@@ -14,7 +14,7 @@ sub new_list_window {
     my $window = Gtk2::Window->new('toplevel');
     $window->set_title('Gtk2 IP Messenger User List');
     $window->set_border_width(5);
-    $window->set_icon_from_file('ipmsg.ico');
+    $window->set_icon_from_file( $self->ipmsg_icon );
     # save list_window
     $self->list_window($window);
     $window->signal_connect(

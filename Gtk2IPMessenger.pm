@@ -3,6 +3,7 @@ package Gtk2IPMessenger;
 use warnings;
 use strict;
 use Encode qw( decode encode );
+use File::Spec::Functions;
 use Glib qw( TRUE FALSE );
 use Gtk2::Helper;
 use Gtk2IPMessenger::EventHandler;
@@ -29,7 +30,8 @@ __PACKAGE__->mk_accessors(
         chosen_user     bubble          has_timeout     icon_image
         slist           users_label     open_message    opened_status
         message_log     input_message   send_button     notify_icon
-        notify_window   incr_search
+        notify_window   incr_search     ipmsg_icon      ipmsgrev_icon
+        ipmsg_anm
         )
 );
 
@@ -61,6 +63,11 @@ sub new {
             || 'shiftjis' );
 
     $self->message_window({});
+
+    # setup icon path
+    $self->ipmsg_icon( catfile( 'img', 'ipmsg.ico' ) );
+    $self->ipmsgrev_icon( catfile( 'img', 'ipmsgrev.ico') );
+    $self->ipmsg_anm( catfile( 'img', 'ipmsg_anm.gif') );
 
     my $ipmsg = Net::IPMessenger::CommandLine->new(%args)
         or die "cannot new Net::IPMessenger::CommandLine : $!\n";
@@ -235,3 +242,11 @@ sub generate_header {
 }
 
 1;
+
+__END__
+
+Copyright (c) 2010, Masanori Hara massa.hara at gmail.com.
+All rights reserved.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.

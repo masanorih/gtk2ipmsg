@@ -38,7 +38,7 @@ sub new_message_window {
     );
 
     $window->set_border_width(5);
-    $window->set_icon_from_file('ipmsg.ico');
+    $window->set_icon_from_file( $self->ipmsg_icon );
     $window->add( $self->new_vbox($user) );
     $window->show_all;
 }

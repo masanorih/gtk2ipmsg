@@ -71,8 +71,6 @@ sub new_notify_icon {
     $window->show_all;
 }
 
-my $gif = 'ipmsg_anm.gif';
-
 sub animate_notify_icon {
     my $self = shift;
     my $stock_id;
@@ -81,6 +79,7 @@ sub animate_notify_icon {
     # kind of insurance
     return if $self->has_timeout;
 
+    my $gif = $self->ipmsg_anm;
     # animate tray icon
     Glib::Timeout->add(
         1000,
