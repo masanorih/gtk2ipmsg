@@ -51,7 +51,9 @@ sub new {
     my $self  = {};
     bless $self, $class;
 
-    $self->conf_file( delete $args{Conf} || 'config.yaml' );
+    my $conf_file = catfile( $ENV{HOME}, '.gtk2ipmsgrc' );
+    $self->conf_file($conf_file);
+
     my $conf = $self->load_config;
     $args{GroupName} = $conf->{groupname};
     $args{HostName}  = $conf->{hostname};
