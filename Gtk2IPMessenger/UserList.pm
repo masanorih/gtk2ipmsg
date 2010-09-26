@@ -3,6 +3,7 @@ package Gtk2IPMessenger::UserList;
 use warnings;
 use strict;
 use Gtk2::SimpleList;
+use Glib qw( TRUE FALSE );
 
 sub new_user_list {
     my $self = shift;
@@ -43,7 +44,7 @@ sub new_user_list {
     # double click event
     $slist->signal_connect(
         row_activated => sub {
-            $self->new_message_window;
+            $self->append_user_tab;
         }
     );
     $slist->signal_connect(
@@ -66,6 +67,68 @@ sub new_user_list {
     $self->slist($slist);
     $self->update_user_list;
     return $slist;
+}
+
+sub append_user_tab {
+    my( $self, $chosen_user ) = @_;
+    $chosen_user ||= $self->chosen_user;
+    my $notebook = $self->users_tab;
+
+    $self->new_list_window unless $self->list_window;
+
+    # open tab
+    my $expander = $self->expander;
+    if ( defined $expander and not $expander->get_expanded ) {
+        $expander->set_expanded(1);
+        $expander->set_label('close tab');
+        $expander->add($notebook);
+    }
+
+    # do nothing
+    if ( exists $self->tabs->{$chosen_user} ) {
+        # set_show_tabs
+#       my $num = $self->tabs->{$chosen_user};
+#       $notebook->set_current_page($num);
+        return;
+    }
+    my $user  = $self->get_user($chosen_user);
+    my $utf8  = $self->to_utf8( $user->nickname );
+    my $label = Gtk2::Label->new($utf8);
+
+    my $vbox = Gtk2::VBox->new( FALSE, 5 );
+    $vbox->pack_start( $self->message_log_frame($user),   TRUE, TRUE, 0 );
+    $vbox->pack_start( $self->input_message_frame($user), TRUE, TRUE, 0 );
+    $vbox->show_all();
+
+    $notebook->append_page( $vbox, $label );
+    $notebook->show_all;
+
+    # save tab
+    my $num = keys %{ $self->tabs };
+    $self->tabs->{$chosen_user} = $num;
+
+    $notebook->set_current_page($num);
+}
+
+sub hilight_tab {
+    my( $self, $user ) = @_;
+
+    return unless $self->list_window;
+    $self->append_user_tab( $user->key );
+
+    my $nickname = $self->get_nickname($user);
+    $self->update_tab_label( $user, "<span color='red'>$nickname</span>" );
+}
+
+sub update_tab_label {
+    my( $self, $user, $str ) = @_;
+
+    my $num      = $self->tabs->{ $user->key };
+    my $notebook = $self->users_tab;
+    my $page     = $notebook->get_nth_page($num);
+    my $label    = Gtk2::Label->new;
+    $label->set_markup($str);
+    $notebook->set_tab_label( $page, $label );
 }
 
 sub update_user_list {

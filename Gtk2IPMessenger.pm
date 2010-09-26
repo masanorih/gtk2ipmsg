@@ -17,12 +17,12 @@ use base qw(
     Gtk2IPMessenger::InputMessage
     Gtk2IPMessenger::ListWindow
     Gtk2IPMessenger::MessageWindow
-    Gtk2IPMessenger::MainWindow
     Gtk2IPMessenger::MessageLog
     Gtk2IPMessenger::NotifyIcon
     Gtk2IPMessenger::TrayIcon
     Gtk2IPMessenger::UserList
 );
+#   Gtk2IPMessenger::MainWindow
 __PACKAGE__->mk_accessors(
     qw(
         ipmsg           encoding        conf            conf_file
@@ -31,10 +31,11 @@ __PACKAGE__->mk_accessors(
         slist           users_label     open_message    opened_status
         message_log     input_message   send_button     notify_icon
         notify_window   incr_search     ipmsg_icon      ipmsgrev_icon
-        ipmsg_anm
+        ipmsg_anm       users_tab       tabs            expander
         )
 );
 
+# this is quite private font setting
 Gtk2::Rc->parse_string(<<__STYLE__);
 
 style "osaka" {
@@ -65,6 +66,7 @@ sub new {
             || 'shiftjis' );
 
     $self->message_window({});
+    $self->tabs({});
 
     # setup icon path
     $self->ipmsg_icon( catfile( 'img', 'ipmsg.ico' ) );
@@ -130,6 +132,23 @@ sub getlist {
     }
 }
 
+sub get_user {
+    my( $self, $str ) = @_;
+    my $user = $self->ipmsg->user->{$str};
+    # just set chosen user as user in case user already logout
+    unless ($user) {
+        # hogehoge@127.0.0.1:2425';
+        my( $nick, $addr, $port ) =
+            ( $str =~ /(\w+)\@(\d+\.\d++\.\d+\.\d+):(\d+)/ );
+        $user = Net::IPMessenger::ClientData->new(
+            User     => $nick,
+            Nick     => $nick,
+            PeerAddr => $addr,
+            PeerPort => $port,
+        );
+    }
+}
+
 sub get_if {
     my @interfaces = IO::Interface::Simple->interfaces;
     for my $if (@interfaces) {
@@ -175,16 +194,18 @@ sub add_events {
         get_message => sub {
             my $user = shift;
             my $key  = $user->key;
-
             # activate open button
             my $open_message = $self->open_message;
             if ( exists $open_message->{$key} ) {
                 $open_message->{$key}->set_sensitive(TRUE);
             }
-
+            # change icon
             $self->set_icon('ipmsgrev');
+            # show notify 
             my @message = $self->generate_header($user);
             $self->show_bubble(@message);
+            # hilight tab
+            $self->hilight_tab($user);
             return TRUE;
         }
     );
@@ -229,18 +250,25 @@ sub alert_message {
 
 sub generate_header {
     my( $self, $user ) = @_;
-    my $ipmsg = $self->ipmsg;
 
     # get first line of message
     my $body = ( split /\n/, $user->get_message )[0];
-    my $key = $user->key;
-    my $nickname = exists $ipmsg->user->{$key}
-        ? $ipmsg->user->{$key}->nickname
-        : $user->nickname;
+    my $nickname = $self->get_nickname($user);
 
     my $info = sprintf "From: %s\nDate: %s",
         $self->to_utf8($nickname), $user->time;
     return( $self->to_utf8($body), $info );
+}
+
+sub get_nickname {
+    my( $self, $user ) = @_;
+    my $ipmsg = $self->ipmsg;
+    my $key   = $user->key;
+
+    my $nickname = exists $ipmsg->user->{$key}
+        ? $ipmsg->user->{$key}->nickname
+        : $user->nickname;
+    return $nickname;
 }
 
 1;

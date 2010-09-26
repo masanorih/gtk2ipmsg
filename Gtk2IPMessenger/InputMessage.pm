@@ -10,28 +10,12 @@ sub new_input_message {
     my $tview = Gtk2::TextView->new();
     # save input_message
     $self->input_message($tview);
-
-#   $tview->signal_connect(
-#       key_press_event => sub {
-#           my $buf = $tview->get_buffer;
-#           my $text =
-#               $buf->get_text( $buf->get_start_iter, $buf->get_end_iter, 0 );
-#           my $button = $self->send_button;
-#           if ($text) {
-#               $button->set_sensitive(TRUE);
-#           }
-#           else {
-#               $button->set_sensitive(FALSE);
-#           }
-#       }
-#   );
     return $tview;
 }
 
 sub new_send_button {
     my( $self, $user ) = @_;
     my $button = Gtk2::Button->new_from_stock('gtk-ok');
-#   $button->set_sensitive(FALSE);
     $button->signal_connect(
         clicked => sub {
             my $buf = $self->input_message->get_buffer;
@@ -96,8 +80,6 @@ sub send_message {
         }
     );
 
-#   $self->send_button->set_sensitive(FALSE);
-#   $self->send_button->set_sensitive(TRUE);
     return 1;
 }
 

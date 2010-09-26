@@ -32,8 +32,8 @@ sub new_tray_icon {
             if ( 1 == $button_nr ) {
                 my $message = $self->ipmsg->message;
                 if ( @{$message} ) {
-                    # open message window if you've already got message
-                    $self->new_message_window( $message->[0]->key );
+                    # open list window if you've already got message
+                    $self->append_user_tab( $message->[0]->key );
                 }
                 else {
                     $self->new_list_window;

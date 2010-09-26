@@ -8,24 +8,10 @@ sub new_message_window {
     my( $self, $chosen_user ) = @_;
     $chosen_user ||= $self->chosen_user;
 
-    my $user = $self->ipmsg->user->{$chosen_user};
-
     # message_window is already opening
     return if $self->message_window->{$chosen_user};
 
-    # just set chosen user as user in case user already logout
-    unless ($user) {
-        # haram@203.181.79.112:2425';
-        my( $nick, $addr, $port ) =
-            ( $chosen_user =~ /(\w+)\@(\d+\.\d++\.\d+\.\d+):(\d+)/ );
-        $user = Net::IPMessenger::ClientData->new(
-            User     => $nick,
-            Nick     => $nick,
-            PeerAddr => $addr,
-            PeerPort => $port,
-        );
-    }
-
+    my $user = $self->get_user($chosen_user);
     my $window = Gtk2::Window->new('toplevel');
     $window->set_title('Gtk2 IP Messenger MessageBox');
     # save message_window
@@ -66,12 +52,8 @@ sub message_log_frame {
     # message log textview
     $scrolled->add( $self->new_message_log($user) );
 
-    my $label = Gtk2::Label->new;
-    $label->set_label( $self->to_utf8( $user->nickname ) );
-
     # HBox
     my $hbox = Gtk2::HBox->new( FALSE, 5 );
-    $hbox->add($label);
     $hbox->pack_end( $self->clear_message_button, FALSE, FALSE, 0 );
     $hbox->pack_end( $self->open_message_button($user),  FALSE, FALSE, 0 );
 

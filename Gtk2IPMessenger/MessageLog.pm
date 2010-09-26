@@ -107,6 +107,11 @@ sub open_message_button {
                 $self->add_message_log( 'from', $body, $m );
                 $self->set_icon('ipmsg') unless @{ $ipmsg->message };
             }
+            # update tab label
+            my $nickname = $self->get_nickname($user);
+            $self->update_tab_label( $user, $nickname );
+
+            # set no sensitive
             $button->set_sensitive(FALSE)
                 unless $self->has_message_from_user($user);
         }

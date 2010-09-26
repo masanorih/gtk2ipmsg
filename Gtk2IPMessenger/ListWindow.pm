@@ -40,6 +40,41 @@ sub users_vbox {
     $scrolled->set_size_request( 600, 200 );
     $scrolled->add( $self->new_user_list );
 
+    # add tab
+    my $notebook = Gtk2::Notebook->new;
+    $notebook->set_scrollable(TRUE);
+    # enable right click to change page
+    $notebook->popup_enable;
+    $self->users_tab($notebook);
+    $self->tabs({});
+
+    # expand tab
+    my $expander = Gtk2::Expander->new_with_mnemonic('open tab');
+    # open and added by default
+    $expander->set_expanded(1);
+    $expander->add($notebook);
+    $expander->signal_connect_after(
+        'activate' => sub {
+            if ( $expander->get_expanded ) {
+                $expander->set_label('close tab');
+                $expander->add($notebook);
+            }
+            else {
+                $expander->set_label('open tab');
+                $expander->remove($notebook);
+                $self->list_window->resize( 600, 200 );
+            }
+            return FALSE;
+        }
+    );
+    $self->expander($expander);
+
+    # restore tabs
+    for my $m ( @{ $self->ipmsg->message } ) {
+        $self->append_user_tab( $m->key );
+        $self->hilight_tab($m);
+    }
+
     # HBox
     my $hbox = Gtk2::HBox->new( FALSE, 5 );
     $hbox->pack_start( $label, FALSE, FALSE, 0 );
@@ -50,6 +85,7 @@ sub users_vbox {
     $vbox->pack_start( $self->user_incr_search_text, FALSE, FALSE, 0 );
     $vbox->add($scrolled);
     $vbox->pack_start( $hbox, FALSE, FALSE, 0 );
+    $vbox->add($expander);
     return $vbox;
 }
 
@@ -81,7 +117,7 @@ sub user_incr_search_text {
                 # open message window if list shows one user
                 if ( $#{ $self->slist->{data} } == 0 ) {
                     $self->slist->select(0);
-                    $self->new_message_window;
+                    $self->append_user_tab;
                 }
             }
         }
