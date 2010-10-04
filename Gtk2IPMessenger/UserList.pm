@@ -127,7 +127,7 @@ sub update_tab_label {
     my $notebook = $self->users_tab;
     my $page     = $notebook->get_nth_page($num);
     my $label    = Gtk2::Label->new;
-    $label->set_markup($str);
+    $label->set_markup( $self->to_utf8($str) );
     $notebook->set_tab_label( $page, $label );
 }
 

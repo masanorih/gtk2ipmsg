@@ -16,9 +16,10 @@ sub new_input_message {
 sub new_send_button {
     my( $self, $user ) = @_;
     my $button = Gtk2::Button->new_from_stock('gtk-ok');
+    my $input = $self->input_message;
     $button->signal_connect(
         clicked => sub {
-            my $buf = $self->input_message->get_buffer;
+            my $buf = $input->get_buffer;
             my $text =
                 $buf->get_text( $buf->get_start_iter, $buf->get_end_iter, 0 );
             $buf->set_text("");
