@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+# usage: sudo sh ./install_deps
+
+# install required library
+apt-get install libgtk2.0-dev libnotify-dev libgtkimageview-dev libssl-dev
+
+# install cpanminus and install depend modules
+curl -L http://cpanmin.us | perl - App::cpanminus
+`which cpanm` --installdeps . 
+`which cpanm` Gtk2::Notify
