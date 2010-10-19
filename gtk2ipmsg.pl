@@ -5,12 +5,12 @@
 # - how to get this work
 #
 #   for Ubuntu users
-#       you need to install
 #
-#       libgtk2.0-dev for Gtk2
-#       libnotify-dev for Gtk2::Nofity
+#       just run
+#       % sudo sh ./install_deps_ubuntu
+#       to install all liraries and Perl modules below.
 #
-#   these Perl modules are required.
+#   other OS users, those Perl modules are required.
 #
 #       IO::Interface::Simple
 #       YAML
@@ -21,28 +21,20 @@
 #       Gtk2::TrayIcon
 #       Gtk2::Notify
 #
-# - for animation support
+#    - for animation support
 #
-#   for Ubuntu users
+#      this Perl module is required.
 #
-#       you need to install
-#       libgtkimageview-dev
+#          Gtk2::ImageView
 #
-#   this Perl module is required.
+#    - for encryption support
 #
-#       Gtk2::ImageView
+#      those Perl modules are required.
 #
-# - for encryption support
-#
-#   for Ubuntu users
-#       you need to install libssl-dev for Crypt::OpenSSL::RSA
-#
-#   these Perl modules are required.
-#
-#       Crypt::CBC
-#       Crypt::Blowfish
-#       Crypt::OpenSSL::RSA
-#       Crypt::OpenSSL::Bignum
+#          Crypt::CBC
+#          Crypt::Blowfish
+#          Crypt::OpenSSL::RSA
+#          Crypt::OpenSSL::Bignum
 #
 # - if you get troubled with text input through IM
 #
