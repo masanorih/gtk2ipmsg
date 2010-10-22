@@ -18,7 +18,10 @@ sub new_list_window {
     # save list_window
     $self->list_window($window);
     $window->signal_connect(
-        delete_event => sub { $self->list_window(undef) }
+        delete_event => sub {
+            $self->list_window(undef);
+            $self->incr_search(undef);
+        }
     );
 
     $window->add( $self->users_vbox );
