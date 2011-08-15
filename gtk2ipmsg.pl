@@ -8,7 +8,7 @@
 #
 #       just run
 #       % sudo sh ./install_deps_ubuntu
-#       to install all liraries and Perl modules below.
+#       to install all libraries and Perl modules below.
 #
 #   other OS users, those Perl modules are required.
 #
@@ -51,6 +51,7 @@ use Gtk2 -init;
 
 my $gipmsg = Gtk2IPMessenger->new;
 $gipmsg->new_tray_icon;
+$gipmsg->new_notify_icon if $gipmsg->conf->{notify_icon};
 
 Gtk2->main;
 

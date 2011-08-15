@@ -11,17 +11,17 @@ sub load_config {
 
     return if $self->conf;
     my $conf;
-    eval {
-        $conf = LoadFile( $self->conf_file );
-    };
+    eval { $conf = LoadFile( $self->conf_file ); };
     if ($@) {
+
         # load default
-        $conf->{username}  = $ENV{USER} || 'gtk2ipmsg';
-        $conf->{nickname}  = $ENV{USER} || 'gtk2ipmsg';
-        $conf->{groupname} = '';
-        $conf->{hostname}  = hostname;
-        $conf->{broadcast} = [];
-        $conf->{priority}  = {};
+        $conf->{username} = $ENV{USER} || 'gtk2ipmsg';
+        $conf->{nickname} = $ENV{USER} || 'gtk2ipmsg';
+        $conf->{groupname}   = '';
+        $conf->{hostname}    = hostname;
+        $conf->{broadcast}   = [];
+        $conf->{priority}    = {};
+        $conf->{notify_icon} = 0;
     }
     else {
         $conf->{groupname} = encode 'shiftjis', $conf->{groupname};
@@ -32,22 +32,23 @@ sub load_config {
 }
 
 sub save_config {
-    my( $self, $new ) = @_;
+    my ( $self, $new ) = @_;
     my $ipmsg = $self->ipmsg;
     my $conf  = $self->conf;
 
     # self information needs to be updated
-    for my $key ( qw( username nickname groupname hostname ) ) {
+    for my $key (qw( username nickname groupname hostname )) {
         if ( exists $new->{$key} ) {
             $conf->{$key} = $self->from_utf8( $new->{$key} );
             $ipmsg->$key( $conf->{$key} );
         }
     }
+
     # show encoding in config file
     $conf->{encoding} = $self->encoding;
 
     # those column are hash ref
-    for my $column ( qw( broadcast priority ) ) {
+    for my $column (qw( broadcast priority notify_icon )) {
         next unless exists $new->{$column};
         if ( 'HASH' eq ref $new->{$column} ) {
             my $hash_ref = $new->{$column};

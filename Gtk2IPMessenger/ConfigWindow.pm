@@ -35,18 +35,24 @@ sub new_config_window {
     my $entry_group = Gtk2::Entry->new;
     $entry_group->set_text( $self->to_utf8( $conf->{groupname} ) );
 
-    my $table = Gtk2::Table->new( 4, 5, FALSE );
+    my $label_nicon = Gtk2::Label->new('show notify icon on start up');
+    my $entry_nicon = Gtk2::CheckButton->new;
+    $entry_nicon->set_active( $conf->{notify_icon} );
+
+    my $table = Gtk2::Table->new( 3, 5, FALSE );
     $table->set_row_spacings(3);
     $table->set_col_spacings(3);
     $table->attach_defaults( $label_nick,  0, 1, 0, 1 );
     $table->attach_defaults( $entry_nick,  1, 2, 0, 1 );
-    $table->attach_defaults( $label_group, 0, 1, 2, 3 );
-    $table->attach_defaults( $entry_group, 1, 2, 2, 3 );
+    $table->attach_defaults( $label_group, 0, 1, 1, 3 );
+    $table->attach_defaults( $entry_group, 1, 2, 1, 3 );
+    $table->attach_defaults( $label_nicon, 0, 1, 3, 5 );
+    $table->attach_defaults( $entry_nicon, 1, 2, 3, 5 );
 
     my $button_cancel = Gtk2::Button->new_from_stock('gtk-cancel');
     my $button_ok     = Gtk2::Button->new_from_stock('gtk-ok');
 
-    my( $broadcast_frame, $broadcast_list ) = $self->new_broadcast_frame;
+    my ( $broadcast_frame, $broadcast_list ) = $self->new_broadcast_frame;
 
     my $hbox = Gtk2::HBox->new;
     $hbox->pack_end( $button_ok,     FALSE, FALSE, 0 );
@@ -70,16 +76,18 @@ sub new_config_window {
         clicked => sub {
             my $nick  = $entry_nick->get_text;
             my $group = $entry_group->get_text;
+            my $nicon = $entry_nicon->get_active;
             my $broadcast;
             for my $ref ( @{ $broadcast_list->{data} } ) {
-                push @{ $broadcast }, $ref->[0];
+                push @{$broadcast}, $ref->[0];
             }
 
             $self->save_config(
                 {
-                    nickname  => $nick,
-                    groupname => $group,
-                    broadcast => $broadcast,
+                    nickname    => $nick,
+                    groupname   => $group,
+                    broadcast   => $broadcast,
+                    notify_icon => $nicon,
                 }
             );
             $self->config_window(undef);
@@ -97,7 +105,7 @@ sub new_broadcast_frame {
     $frame->set_border_width(5);
 
     my $slist = Gtk2::SimpleList->new( addr => 'text' );
-    $slist->set_size_request(150, 100);
+    $slist->set_size_request( 150, 100 );
     my $conf = $self->conf;
     for my $addr ( @{ $conf->{broadcast} } ) {
         push @{ $slist->{data} }, $addr;
@@ -110,7 +118,7 @@ sub new_broadcast_frame {
 
     $entry_broadcast->signal_connect(
         key_press_event => sub {
-            my( $widget, $event ) = @_;
+            my ( $widget, $event ) = @_;
             if ( $event->keyval == $Gtk2::Gdk::Keysyms{Return} ) {
                 $button_append->clicked;
                 return TRUE;
@@ -128,7 +136,7 @@ sub new_broadcast_frame {
             }
             elsif ( gethostbyname $addr ) {
                 my $ip = join '.',
-                    map { ord $_ } unpack( "aaaa", gethostbyname $addr );
+                  map { ord $_ } unpack( "aaaa", gethostbyname $addr );
                 push @{ $slist->{data} }, $ip;
             }
         }
@@ -174,7 +182,7 @@ sub new_broadcast_frame {
     $hbox->add($scrolled);
 
     $frame->add($hbox);
-    return( $frame, $slist );
+    return ( $frame, $slist );
 }
 
 1;

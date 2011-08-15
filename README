@@ -6,7 +6,7 @@ This is gtk2-perl based IP Messenger client.
 
       just run
       % sudo sh ./install_deps_ubuntu
-      to install all liraries and Perl modules below.
+      to install all libraries and Perl modules below.
 
   other OS users, those Perl modules are required.
 

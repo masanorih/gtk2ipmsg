@@ -233,8 +233,7 @@ sub add_timeout_events {
 }
 
 sub alert_message {
-    my $self = shift;
-    my $text = shift;
+    my( $self, $text ) = @_;
 
     my $parent = $self->main_window;
     my $icon   = 'warning';
