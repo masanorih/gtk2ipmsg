@@ -13,15 +13,14 @@ sub load_config {
     my $conf;
     eval { $conf = LoadFile( $self->conf_file ); };
     if ($@) {
-
-        # load default
+        # set default
         $conf->{username} = $ENV{USER} || 'gtk2ipmsg';
         $conf->{nickname} = $ENV{USER} || 'gtk2ipmsg';
         $conf->{groupname}   = '';
         $conf->{hostname}    = hostname;
         $conf->{broadcast}   = [];
         $conf->{priority}    = {};
-        $conf->{notify_icon} = 0;
+        $conf->{notify_icon} = 1;
     }
     else {
         $conf->{groupname} = encode 'shiftjis', $conf->{groupname};
