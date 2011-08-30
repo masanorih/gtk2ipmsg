@@ -47,7 +47,7 @@ use warnings;
 use strict;
 use lib qw(.);
 use Gtk2IPMessenger;
-use Gtk2 -init;
+use Gtk2 '-init';
 
 my $gipmsg = Gtk2IPMessenger->new;
 $gipmsg->new_tray_icon;

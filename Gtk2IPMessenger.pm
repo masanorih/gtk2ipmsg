@@ -12,11 +12,11 @@ use Net::IPMessenger::CommandLine;
 use POSIX qw( strftime );
 use base qw(
     Class::Accessor::Fast
+    Gtk2IPMessenger::AttachFile
     Gtk2IPMessenger::Config
     Gtk2IPMessenger::ConfigWindow
     Gtk2IPMessenger::InputMessage
     Gtk2IPMessenger::ListWindow
-    Gtk2IPMessenger::MessageWindow
     Gtk2IPMessenger::MessageLog
     Gtk2IPMessenger::NotifyIcon
     Gtk2IPMessenger::TrayIcon
@@ -26,12 +26,13 @@ use base qw(
 __PACKAGE__->mk_accessors(
     qw(
         ipmsg           encoding        conf            conf_file
-        list_window     message_window  main_window     config_window
+        list_window     main_window     config_window
         chosen_user     bubble          has_timeout     icon_image
         slist           users_label     open_message    opened_status
         message_log     input_message   send_button     notify_icon
         notify_window   incr_search     ipmsg_icon      ipmsgrev_icon
         ipmsg_anm       users_tab       tabs            expander
+        attach_button   label_attach
         )
 );
 
@@ -54,7 +55,6 @@ sub new {
 
     my $conf_file = catfile( $ENV{HOME}, '.gtk2ipmsgrc' );
     $self->conf_file($conf_file);
-
     my $conf = $self->load_config;
     $args{GroupName} = $conf->{groupname};
     $args{HostName}  = $conf->{hostname};
@@ -65,7 +65,6 @@ sub new {
             || $conf->{encoding}
             || 'shiftjis' );
 
-    $self->message_window({});
     $self->tabs({});
 
     # setup icon path
@@ -96,7 +95,6 @@ sub new {
         },
         $sock
     );
-
     $self->add_events;
     $self->add_timeout_events;
     $ipmsg->join;

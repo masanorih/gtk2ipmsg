@@ -84,11 +84,8 @@ sub append_user_tab {
         $expander->add($notebook);
     }
 
-    # do nothing
+    # do nothing when user tab already exists
     if ( exists $self->tabs->{$chosen_user} ) {
-        # set_show_tabs
-#       my $num = $self->tabs->{$chosen_user};
-#       $notebook->set_current_page($num);
         return;
     }
     my $user  = $self->get_user($chosen_user);
@@ -98,16 +95,89 @@ sub append_user_tab {
     my $vbox = Gtk2::VBox->new( FALSE, 5 );
     $vbox->pack_start( $self->message_log_frame($user),   TRUE, TRUE, 0 );
     $vbox->pack_start( $self->input_message_frame($user), TRUE, TRUE, 0 );
-    $vbox->show_all();
 
     $notebook->append_page( $vbox, $label );
     $notebook->show_all;
+    $self->{pbar}->hide;
 
     # save tab
     my $num = keys %{ $self->tabs };
     $self->tabs->{$chosen_user} = $num;
-
     $notebook->set_current_page($num);
+}
+
+sub message_log_frame {
+    my( $self, $user ) = @_;
+
+    # Generate ScrolledWindow
+    my $scrolled = Gtk2::ScrolledWindow->new( undef, undef );
+    $scrolled->set_shadow_type('etched-out');
+    $scrolled->set_policy( 'automatic', 'automatic' );
+    $scrolled->set_size_request( 550, 300 );
+    $scrolled->set_border_width(5);
+
+    # message log textview
+    $scrolled->add( $self->new_message_log($user) );
+
+    # HBox
+    my $hbox = Gtk2::HBox->new( FALSE, 5 );
+    $hbox->pack_end( $self->clear_message_button, FALSE, FALSE, 0 );
+    $hbox->pack_end( $self->open_message_button($user),  FALSE, FALSE, 0 );
+
+    # VBox
+    my $vbox = Gtk2::VBox->new( FALSE, 5 );
+    $vbox->pack_start( $hbox, FALSE, FALSE, 0 );
+    $vbox->add($scrolled);
+
+    my $frame = Gtk2::Frame->new("Message Log");
+    $frame->set_border_width(5);
+    $frame->add($vbox);
+
+    return $frame;
+}
+
+sub input_message_frame {
+    my( $self, $user ) = @_;
+
+    my $frame = Gtk2::Frame->new("Input Message Buffer");
+    $frame->set_border_width(1);
+
+    #
+    # Generate ScrolledWindow
+    #
+    my $scrolled = Gtk2::ScrolledWindow->new( undef, undef );
+    $scrolled->set_shadow_type('etched-out');
+    $scrolled->set_policy( 'automatic', 'automatic' );
+    $scrolled->set_size_request( 500, 100 );
+    # method of Gtk2::Container
+    $scrolled->set_border_width(5);
+    $scrolled->add( $self->new_input_message );
+
+    my $label_opened = Gtk2::Label->new;
+    $self->opened_status($label_opened);
+
+    # HBox
+    my $hbox = Gtk2::HBox->new( FALSE, 5 );
+    $hbox->add($label_opened);
+    $hbox->pack_end( $self->new_send_button($user), FALSE, FALSE, 0 );
+
+    my $hbox2 = Gtk2::HBox->new( FALSE, 5 );
+    my $label_attach = Gtk2::Label->new('add attach file');
+    $self->label_attach($label_attach);
+
+    $hbox2->pack_end( $self->new_attach_button, FALSE, FALSE, 0 );
+    $hbox2->pack_end( $self->new_close_attach, FALSE, FALSE, 0 );
+    $hbox2->pack_end( $label_attach, FALSE, FALSE, 0 );
+    $hbox2->pack_start( $self->new_progress_bar, FALSE, FALSE, 0 );
+
+    # VBox
+    my $vbox = Gtk2::VBox->new( FALSE, 5 );
+    $vbox->add($hbox2);
+    $vbox->add($scrolled);
+    $vbox->pack_start( $hbox, FALSE, FALSE, 0 );
+
+    $frame->add($vbox);
+    return $frame;
 }
 
 sub hilight_tab {
