@@ -57,7 +57,7 @@ sub send_message {
     my $label_attach = $self->label_attach->get_label;
     if ( 'add attach file' ne $label_attach ) {
         $command->set_fileattach;
-        my $result = $self->add_attach( $label_attach );
+        my $result = $self->add_attach( $label_attach, $user );
         $text .= $result if $result;
     }
 
@@ -72,33 +72,10 @@ sub send_message {
     return 1;
 }
 
-sub send_GETPUBKEY {
-    my( $self, $user ) = @_;
-    my $ipmsg = $self->ipmsg;
-    $ipmsg->send(
-        {
-            command  => $ipmsg->messagecommand('GETPUBKEY'),
-            option   => sprintf( "%x", $ipmsg->encrypt->support_encryption ),
-            peeraddr => $user->peeraddr,
-            peerport => $user->peerport,
-        }
-    );
-
-    local $SIG{ALRM} = sub { die "timeout\n" };
-    alarm(1);
-    eval { $ipmsg->recv };
-    if ( $@ and $@ eq "timeout\n" ) {
-        alarm(0);
-        return;
-    }
-    alarm(0);
-    return 1;
-}
-
 our $attach_dir = $ENV{HOME};
 
 sub new_attach_button {
-    my($self) = @_;
+    my( $self, $user ) = @_;
     my $button = Gtk2::Button->new_from_stock('gtk-open');
     $button->signal_connect(
         clicked => sub {
@@ -114,8 +91,10 @@ sub new_attach_button {
                 my $file = $dialog->get_filename;
                 $self->label_attach->set_label($file);
                 $self->label_attach->hide;
-                $self->{pbar}->set_text( basename($file) );
-                $self->{pbar}->show;
+                my $key = $user->key;
+                my $pbar = $self->find_by_key( $key, 'Gtk2::ProgressBar', 1 );
+                $pbar->set_text( basename($file) );
+                $pbar->show;
             }
             $dialog->destroy;
         }
@@ -125,14 +104,15 @@ sub new_attach_button {
 }
 
 sub new_close_attach {
-    my($self) = @_;
-
+    my( $self, $user ) = @_;
     my $button = Gtk2::Button->new_from_stock('gtk-clear');
     $button->signal_connect(
         clicked => sub {
-            $self->{pbar}->set_text("");
-            $self->{pbar}->set_fraction(0);
-            $self->{pbar}->hide;
+            my $key = $user->key;
+            my $pbar = $self->find_by_key( $key, 'Gtk2::ProgressBar', 1 );
+            $pbar->set_text("");
+            $pbar->set_fraction(0);
+            $pbar->hide;
             $self->label_attach->set_label('add attach file');
             $self->label_attach->show;
         }

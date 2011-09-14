@@ -98,11 +98,14 @@ sub append_user_tab {
 
     $notebook->append_page( $vbox, $label );
     $notebook->show_all;
-    $self->{pbar}->hide;
 
     # save tab
     my $num = keys %{ $self->tabs };
-    $self->tabs->{$chosen_user} = $num;
+    $self->tabs->{$chosen_user} = {
+        num    => $num,
+        widget => $vbox,
+    };
+    $self->hide_progress_bar($user);
     $notebook->set_current_page($num);
 }
 
@@ -121,8 +124,10 @@ sub message_log_frame {
 
     # HBox
     my $hbox = Gtk2::HBox->new( FALSE, 5 );
-    $hbox->pack_end( $self->clear_message_button, FALSE, FALSE, 0 );
-    $hbox->pack_end( $self->open_message_button($user),  FALSE, FALSE, 0 );
+    $hbox->pack_start( $self->new_read_progress_bar($user), FALSE, FALSE, 5 );
+    $hbox->pack_start( $self->new_start_download($user),    FALSE, FALSE, 5 );
+    $hbox->pack_end( $self->open_message_button($user), FALSE, FALSE, 0 );
+    $hbox->pack_end( $self->clear_message_button,       FALSE, FALSE, 0 );
 
     # VBox
     my $vbox = Gtk2::VBox->new( FALSE, 5 );
@@ -165,9 +170,9 @@ sub input_message_frame {
     my $label_attach = Gtk2::Label->new('add attach file');
     $self->label_attach($label_attach);
 
-    $hbox2->pack_end( $self->new_attach_button, FALSE, FALSE, 0 );
-    $hbox2->pack_end( $self->new_close_attach, FALSE, FALSE, 0 );
-    $hbox2->pack_end( $label_attach, FALSE, FALSE, 0 );
+    $hbox2->pack_end( $self->new_attach_button($user), FALSE, FALSE, 0 );
+    $hbox2->pack_end( $self->new_close_attach($user),  FALSE, FALSE, 0 );
+    $hbox2->pack_end( $label_attach,                   FALSE, FALSE, 0 );
     $hbox2->pack_start( $self->new_progress_bar, FALSE, FALSE, 0 );
 
     # VBox
@@ -193,7 +198,7 @@ sub hilight_tab {
 sub update_tab_label {
     my( $self, $user, $str ) = @_;
 
-    my $num      = $self->tabs->{ $user->key };
+    my $num      = $self->tabs->{ $user->key }->{num};
     my $notebook = $self->users_tab;
     my $page     = $notebook->get_nth_page($num);
     my $label    = Gtk2::Label->new;
@@ -232,10 +237,8 @@ sub addto_slist {
 
     push @{ $self->slist->{data} },
         [
-        $self->to_utf8( $user->user ),
-        $nick,
-        $self->to_utf8( $user->group || $user->host ),
-        $user->peeraddr,
+        $self->to_utf8( $user->user ), $nick,
+        $self->to_utf8( $user->group || $user->host ), $user->peeraddr,
         $user->peerport,
         ];
 }
@@ -249,7 +252,8 @@ sub sort_byaddr {
     my( $ipa1, $ipa2, $ipa3, $ipa4 ) = split( /\./, $iter[0], 4 );
     my( $ipb1, $ipb2, $ipb3, $ipb4 ) = split( /\./, $iter[1], 4 );
 
-    return $ipa1 <=> $ipb1
+    return
+           $ipa1 <=> $ipb1
         || $ipa2 <=> $ipb2
         || $ipa3 <=> $ipb3
         || $ipa4 <=> $ipb4;

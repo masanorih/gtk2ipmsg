@@ -26,6 +26,7 @@ sub new_list_window {
 
     $window->add( $self->users_vbox );
     $window->show_all;
+    $self->hide_progress_bar( undef, $window );
 }
 
 sub users_vbox {

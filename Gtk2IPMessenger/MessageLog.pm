@@ -87,20 +87,14 @@ sub open_message_button {
             my( $result, $i ) = $self->has_message_from_user($user);
             if ($result) {
                 my $m = splice @{ $ipmsg->message }, $i, 1;
-                # if message is sealed
+                # send READMSG if message is sealed
                 my $command = $ipmsg->messagecommand( $m->command );
                 if ( $command->get_secret ) {
-                    my $message_ref = {
-                        command  => $ipmsg->messagecommand('READMSG'),
-                        peeraddr => $user->peeraddr,
-                        peerport => $user->peerport,
-                    };
-                    # send 'seal' notification
-                    $ipmsg->send($message_ref);
+                    $self->send_READMSG($user);
                 }
                 my $key  = $m->key;
                 my $body = $self->to_utf8( $m->get_message );
-                # overwrite $m for nickname
+                # override $m for nickname
                 if ( exists $ipmsg->user->{$key} ) {
                     $m = $ipmsg->user->{$key};
                 }

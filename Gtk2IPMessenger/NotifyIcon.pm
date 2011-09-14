@@ -23,7 +23,6 @@ sub close_notify_icon {
 
 sub new_notify_icon {
     my $self = shift;
-
     return if $self->notify_icon;
 
     my $window = Gtk2::Window->new('popup');
@@ -32,9 +31,8 @@ sub new_notify_icon {
     $window->set_size_request( 32, 32 );
     $window->set_has_frame(0);
 
-    my $img = Gtk2::Image->new_from_stock( 'ipmsg', 'dnd' );
-
     # save notify_icon and its window
+    my $img = Gtk2::Image->new_from_stock( 'ipmsg', 'dnd' );
     $self->notify_icon($img);
     $self->notify_window($window);
 

@@ -22,11 +22,10 @@ use base qw(
     Gtk2IPMessenger::TrayIcon
     Gtk2IPMessenger::UserList
 );
-#   Gtk2IPMessenger::MainWindow
 __PACKAGE__->mk_accessors(
     qw(
         ipmsg           encoding        conf            conf_file
-        list_window     main_window     config_window
+        list_window     main_window     config_window   dl_request
         chosen_user     bubble          has_timeout     icon_image
         slist           users_label     open_message    opened_status
         message_log     input_message   send_button     notify_icon
@@ -50,7 +49,7 @@ our $VERSION = '0.02';
 
 sub new {
     my( $class, %args ) = @_;
-    my $self  = {};
+    my $self = {};
     bless $self, $class;
 
     my $conf_file = catfile( $ENV{HOME}, '.gtk2ipmsgrc' );
@@ -65,12 +64,13 @@ sub new {
             || $conf->{encoding}
             || 'shiftjis' );
 
-    $self->tabs({});
+    $self->tabs(       {} );
+    $self->dl_request( {} );
 
     # setup icon path
     $self->ipmsg_icon( catfile( 'img', 'ipmsg.ico' ) );
-    $self->ipmsgrev_icon( catfile( 'img', 'ipmsgrev.ico') );
-    $self->ipmsg_anm( catfile( 'img', 'ipmsg_anm.gif') );
+    $self->ipmsgrev_icon( catfile( 'img', 'ipmsgrev.ico' ) );
+    $self->ipmsg_anm( catfile( 'img', 'ipmsg_anm.gif' ) );
 
     my $ipmsg = Net::IPMessenger::CommandLine->new(%args)
         or die "cannot new Net::IPMessenger::CommandLine : $!\n";
@@ -177,13 +177,13 @@ sub add_events {
                 $user = $ipmsg->user->{ $user->key };
             }
             my $nickname = $user->nick;
-            my $status = sprintf "Last message is opened at %s by %s",
+            my $status   = sprintf "Last message is opened at %s by %s",
                 strftime( "%H:%M:%S", localtime ), $nickname;
             my $by = sprintf "By %s (%s/%s)",
                 $user->nick, $user->group, $user->host;
 
             $self->opened_status->set_label( $self->to_utf8($status) );
-            $self->show_bubble( "Your Message has opened",
+            $self->show_bubble( "Your message has opened",
                 $self->to_utf8($by) );
         }
     );
@@ -199,11 +199,13 @@ sub add_events {
             }
             # change icon
             $self->set_icon('ipmsgrev');
-            # show notify 
+            # show notify
             my @message = $self->generate_header($user);
             $self->show_bubble(@message);
             # hilight tab
             $self->hilight_tab($user);
+
+            $self->read_attach_file($user) if $user->attach;
             return TRUE;
         }
     );
@@ -254,7 +256,7 @@ sub generate_header {
 
     my $info = sprintf "From: %s\nDate: %s",
         $self->to_utf8($nickname), $user->time;
-    return( $self->to_utf8($body), $info );
+    return ( $self->to_utf8($body), $info );
 }
 
 sub get_nickname {
@@ -262,18 +264,83 @@ sub get_nickname {
     my $ipmsg = $self->ipmsg;
     my $key   = $user->key;
 
-    my $nickname = exists $ipmsg->user->{$key}
+    my $nickname =
+        exists $ipmsg->user->{$key}
         ? $ipmsg->user->{$key}->nickname
         : $user->nickname;
     return $nickname;
 }
 
+sub send_GETPUBKEY {
+    my( $self, $user ) = @_;
+    my $ipmsg = $self->ipmsg;
+    $ipmsg->send(
+        {
+            command  => $ipmsg->messagecommand('GETPUBKEY'),
+            option   => sprintf( "%x", $ipmsg->encrypt->support_encryption ),
+            peeraddr => $user->peeraddr,
+            peerport => $user->peerport,
+        }
+    );
+
+    local $SIG{ALRM} = sub { die "timeout\n" };
+    alarm(1);
+    eval { $ipmsg->recv };
+    if ( $@ and $@ eq "timeout\n" ) {
+        alarm(0);
+        return;
+    }
+    alarm(0);
+    return 1;
+}
+
+sub send_READMSG {
+    my( $self, $user ) = @_;
+    my $ipmsg = $self->ipmsg;
+    my $ref   = {
+        command  => $ipmsg->messagecommand('READMSG'),
+        peeraddr => $user->peeraddr,
+        peerport => $user->peerport,
+    };
+    # send 'seal' notification
+    $ipmsg->send($ref);
+}
+
+sub send_GETFILEDAT {
+    my( $self, $ref, $user ) = @_;
+    my $ipmsg    = $self->ipmsg;
+    my $fileid   = $ref->{fileid};
+    my $packetid = sprintf "%x", $user->packet_num;
+
+    my $command = $ipmsg->messagecommand('GETFILEDAT');
+    my $option  = sprintf( "%s:%s:%s:", $packetid, hex($fileid), 0 );
+    my $getfiledata = {
+        command  => $command,
+        option   => $option,
+    };
+    return $ipmsg->generate_packet($getfiledata);
+}
+
+sub find_widget {
+    my( $self, $widget, $package ) = @_;
+    my @list = ();
+    for my $child ( $widget->get_children ) {
+        if ( $package eq ref $child ) {
+            push @list, $child;
+        }
+        elsif ( $child->can('get_children') ) {
+            my @result = $self->find_widget( $child, $package );
+            push @list, $_ for @result;
+        }
+    }
+    return @list;
+}
+
+sub find_by_key {
+    my( $self, $key, $package, $idx ) = @_;
+    my $widget = $self->tabs->{$key}->{widget};
+    my @list = $self->find_widget( $widget, $package );
+    return $list[$idx];
+}
+
 1;
-
-__END__
-
-Copyright (c) 2010, Masanori Hara massa.hara at gmail.com.
-All rights reserved.
-
-This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself.
