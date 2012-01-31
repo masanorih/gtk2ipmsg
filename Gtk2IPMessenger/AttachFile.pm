@@ -24,12 +24,18 @@ sub read_attach_file {
 sub new_read_progress_bar {
     my( $self, $user ) = @_;
     my $pbar = Gtk2::ProgressBar->new;
+    $self->show_read_pbar( $pbar, $user );
+    return $pbar;
+}
+
+sub show_read_pbar {
+    my( $self, $pbar, $user ) = @_;
+    return unless defined $pbar;
     my $text = $self->dl_request->{ $user->key }->{filename};
     if ($text) {
         $pbar->set_text($text);
         $pbar->show;
     }
-    return $pbar;
 }
 
 our $attach_dir = $ENV{HOME};
@@ -49,7 +55,8 @@ sub new_start_download {
                 'gtk-ok'     => 'ok'
             );
             $dialog->set_current_folder($attach_dir);
-#           $dialog->set_filename( $ref->{filename} );
+            # XXX this doesn't work
+            # $dialog->set_filename( $ref->{filename} );
             my $file;
             if ( 'ok' eq $dialog->run ) {
                 $attach_dir = $dialog->get_current_folder;
@@ -95,14 +102,17 @@ sub get_uploaded {
             }
             if ( 0 == $read ) {
                 $self->remove_watch( 'watcher_download', $sock, $out );
+                delete $self->dl_request->{ $user->key };
                 return FALSE;
             }
             else {
                 $total += $read;
                 my $pbar =
                     $self->find_by_key( $user->key, 'Gtk2::ProgressBar', 0 );
-                $self->update_progress( $pbar, $total, $size, $filename );
+                my $perc =
+                    $self->update_progress( $pbar, $total, $size, $filename );
                 $out->syswrite($buf);
+# XXX I need to close connect when $perc = 1 because dl finished
             }
             return TRUE;
         },
@@ -216,6 +226,7 @@ sub update_progress {
 
     $pbar->set_fraction($perc);
     $pbar->set_text($text);
+    return $perc;
 }
 
 sub hide_progress_bar {
@@ -225,16 +236,19 @@ sub hide_progress_bar {
     $widget = $self->tabs->{ $user->key }->{widget} unless $widget;
     my @pbar = $self->find_widget( $widget, 'Gtk2::ProgressBar' );
     for my $p (@pbar) {
-        $p->hide unless $p->get_text;
+        $p->get_text ? $p->show : $p->hide;
+        #       $p->hide unless $p->get_text;
     }
 
-my $download = $pbar[0];
-my $upload   = $pbar[1];
+    my $download = $pbar[0];
+    my $upload   = $pbar[1];
+    if ( defined $user and $user->attach ) {
+        $self->show_read_pbar( $download, $user );
+    }
     my @button = $self->find_widget( $widget, 'Gtk2::Button' );
     for my $b (@button) {
         if ( 'download' eq $b->get_label ) {
-#           $b->set_sensitive(FALSE) unless $download->get_text;
-            $b->hide unless $download->get_text;
+            $download->get_text ? $b->show : $b->hide;
         }
     }
 

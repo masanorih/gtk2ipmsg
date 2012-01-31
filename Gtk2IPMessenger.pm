@@ -205,7 +205,10 @@ sub add_events {
             # hilight tab
             $self->hilight_tab($user);
 
-            $self->read_attach_file($user) if $user->attach;
+            if ( $user->attach ) {
+                $self->read_attach_file($user);
+                $self->hide_progress_bar($user);
+            }
             return TRUE;
         }
     );
@@ -323,6 +326,7 @@ sub send_GETFILEDAT {
 
 sub find_widget {
     my( $self, $widget, $package ) = @_;
+    return unless $widget;
     my @list = ();
     for my $child ( $widget->get_children ) {
         if ( $package eq ref $child ) {
